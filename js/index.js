@@ -8,8 +8,11 @@ var radius = 30;
 var startAngle = 0;
 var endAngle = Math.PI * 2;
 
-
-
+var container, stats;
+var particleMaterial;
+var raycaster;
+var mouse;
+var objects =[];
 // three.js
 var camera = void 0;
 var controls = void 0;
@@ -29,35 +32,42 @@ animate();
 
 function init() {
 
-    // Camera
+    container = document.createElement( 'div' );
+    document.body.appendChild( container );
 
-    camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 5000); // 透视相机
+    // Camera
+    camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 5000);
     camera.position.x = 750;
     camera.position.y = 500;
     camera.position.z = 1250;
     
+
+    var PI2 = Math.PI * 2;
+    particleMaterial = new THREE.SpriteCanvasMaterial( {
+
+        color: 0x000000,
+        program: function ( context ) {
+
+            context.beginPath();
+            context.arc( 0, 0, 0.5, 0, PI2, true );
+            context.fill();
+
+        }
+
+    } );
     // Scene
 
     scene = new THREE.Scene();
 
     // Lights
     var lights = [];
+
     lights[0] = new THREE.PointLight(0xffffff, 1, 0);
     lights[1] = new THREE.PointLight(0xffffff, 1, 0);
-    lights[2] = new THREE.PointLight(0xffffff, 1, 0);
-
-    lights[0].position.set(0, 20000, 0);
-    lights[1].position.set(1000, 2000, 1000);
-    lights[2].position.set(-1000, -2000, -1000);
-    // 点光源
-    var ambiColor = "#0c0c0c";
-    var ambientLight = new THREE.AmbientLight(ambiColor);
-    scene.add(ambientLight);
-
-    // scene.add(lights[0]); //删掉顶部光源
+    lights[0].position.set(1000, 2000, 1000);
+    lights[1].position.set(-1000, -2000, -1000);
+    scene.add(lights[0]);
     scene.add(lights[1]);
-    scene.add(lights[2]);
-
 
     // Mesh
 
@@ -80,25 +90,35 @@ function init() {
 
     scene.add(sprite);
 
+    // 射线投影器
+    raycaster = new THREE.Raycaster(); // 射线投射器
+    mouse = new THREE.Vector2(); // 二维鼠标向量
+
+
     // Renderer
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0.5);
-    
+    container.appendChild( renderer.domElement );
     document.body.appendChild(renderer.domElement);
+    stats = new Stats();
+    container.appendChild( stats.dom );
+
 
     //  objLoader
 
     objLoader = new THREE.OBJLoader();
     objLoader.setPath('./obj/');
     objLoader.load('zxj.obj', function (object) {
+        
         object.traverse( function (child){
             if (child instanceof THREE.Mesh) {
                 child.material.side = THREE.DoubleSide;
                 child.material.shininess = 100;
             }
+           
         });
         object.name = "zxj";  //设置模型的名称
         object.position.y = 0; //载入模型的时候的位置
@@ -117,8 +137,14 @@ function init() {
         object.scale.z = 0.001;
         //写入场景内
         scene.add(object);
+        objects.push( object );
         addObject = object;
+
+        
+        document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+        document.addEventListener( 'touchstart', onDocumentTouchStart, false );
     });
+
     // Controls
     controls = new THREE.OrbitControls(camera, renderer.domElement);
 
@@ -142,6 +168,48 @@ function init() {
     window.addEventListener("resize", onWindowResize, false);
 }
 
+function onDocumentTouchStart(event) {
+
+    event.preventDefault();
+
+    event.clientX = event.touches[0].clientX;
+    event.clientY = event.touches[0].clientY;
+    onDocumentMouseDown(event);
+
+}
+
+function onDocumentMouseDown(event) {
+
+    event.preventDefault();
+
+    mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+    mouse.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);//从相机发射一条射线，经过鼠标点击位置
+
+    var intersects = raycaster.intersectObjects(objects);
+
+    if (intersects.length > 0) {
+
+        intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
+
+        var particle = new THREE.Sprite(particleMaterial);
+        particle.position.copy(intersects[0].point);
+        particle.scale.x = particle.scale.y = 16;
+        scene.add(particle);
+
+    }
+
+    /*
+    // Parse all the faces
+    for ( var i in intersects ) {
+ 
+        intersects[ i ].face.material[ 0 ].color.setHex( Math.random() * 0xffffff | 0x80000000 );
+ 
+    }
+    */
+}
+
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -152,6 +220,7 @@ function onWindowResize() {
 function animate() {
     requestAnimationFrame(animate);
     controls.update();
+    stats.update();
     render();
 }
 
@@ -161,9 +230,24 @@ function render() {
     updateScreenPosition(); // 修改注解的屏幕位置
 }
 
+// var radius = 600;
+// var theta = 0;
+
+// function render() {
+
+//     theta += 0.1;
+
+//     camera.position.x = radius * Math.sin( THREE.Math.degToRad( theta ) );
+//     camera.position.y = radius * Math.sin( THREE.Math.degToRad( theta ) );
+//     camera.position.z = radius * Math.cos( THREE.Math.degToRad( theta ) );
+//     camera.lookAt( scene.position );
+
+//     renderer.render( scene, camera );
+
+// }
 /* 修改注解透明度函数体 */
 function updateAnnotationOpacity() {
-    var objDistance = camera.position.distanceTo(addObject.position);
+    var objDistance = camera.position.distanceTo(mesh.position);
     var spriteDistance = camera.position.distanceTo(sprite.position);
     spriteBehindObject = spriteDistance > objDistance; //判断是否在模型的正面
     sprite.material.opacity = spriteBehindObject ? 0.25 : 1;
