@@ -1,18 +1,16 @@
+
+
 // Number
 
 var canvas = document.getElementById("number");
 var ctx = canvas.getContext("2d");
-var x = 32;
-var y = 32;
-var radius = 30;
-var startAngle = 0;
-var endAngle = Math.PI * 2;
 
 var container, stats;
 var particleMaterial;
 var raycaster;
 var mouse;
 var objects =[];
+
 // three.js
 var camera = void 0;
 var controls = void 0;
@@ -22,7 +20,10 @@ var sprite = void 0;
 var mesh = void 0;
 var objLoader = void 0;
 var spriteBehindObject = void 0;
-var annotation = document.querySelector(".annotation");
+
+var annotation = document.querySelector(".annotation"); //第一个annotation
+var annotation2 = document.querySelector(".annotation2");//第二个annotation
+
 var addObject = new Object();
 //
 var texture = new THREE.Texture();
@@ -37,26 +38,19 @@ function init() {
 
     // Camera
     camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 5000);
-    camera.position.x = 750;
-    camera.position.y = 500;
-    camera.position.z = 1250;
-    
+    camera.position.set( 750, 500, 1200 );
 
     var PI2 = Math.PI * 2;
     particleMaterial = new THREE.SpriteCanvasMaterial( {
-
         color: 0x000000,
         program: function ( context ) {
-
             context.beginPath();
             context.arc( 0, 0, 0.5, 0, PI2, true );
             context.fill();
-
         }
 
     } );
     // Scene
-
     scene = new THREE.Scene();
 
     // Lights
@@ -85,7 +79,7 @@ function init() {
     var numberTexture = new THREE.CanvasTexture(document.querySelector("#number"));
 
     sprite = new THREE.Sprite();
-    sprite.position.set(0, 0, 250);
+    sprite.position.set(0, 0, 100);
     sprite.scale.set(60, 60, 10);
 
     scene.add(sprite);
@@ -137,8 +131,8 @@ function init() {
         object.scale.z = 0.001;
         //写入场景内
         scene.add(object);
-        objects.push( object );
-        addObject = object;
+        objects.push( object );//仿照ThreeJS写法
+        addObject = object; 
 
         
         document.addEventListener( 'mousedown', onDocumentMouseDown, false );
@@ -167,7 +161,9 @@ function init() {
     controls.dampingFactor = 0.09;
     window.addEventListener("resize", onWindowResize, false);
 }
-
+/**
+ * 触摸屏
+ */ 
 function onDocumentTouchStart(event) {
 
     event.preventDefault();
@@ -177,7 +173,9 @@ function onDocumentTouchStart(event) {
     onDocumentMouseDown(event);
 
 }
-
+/**
+ * 鼠标点击生成热点
+ */ 
 function onDocumentMouseDown(event) {
 
     event.preventDefault();
@@ -199,15 +197,6 @@ function onDocumentMouseDown(event) {
         scene.add(particle);
 
     }
-
-    /*
-    // Parse all the faces
-    for ( var i in intersects ) {
- 
-        intersects[ i ].face.material[ 0 ].color.setHex( Math.random() * 0xffffff | 0x80000000 );
- 
-    }
-    */
 }
 
 function onWindowResize() {
@@ -230,21 +219,6 @@ function render() {
     updateScreenPosition(); // 修改注解的屏幕位置
 }
 
-// var radius = 600;
-// var theta = 0;
-
-// function render() {
-
-//     theta += 0.1;
-
-//     camera.position.x = radius * Math.sin( THREE.Math.degToRad( theta ) );
-//     camera.position.y = radius * Math.sin( THREE.Math.degToRad( theta ) );
-//     camera.position.z = radius * Math.cos( THREE.Math.degToRad( theta ) );
-//     camera.lookAt( scene.position );
-
-//     renderer.render( scene, camera );
-
-// }
 /* 修改注解透明度函数体 */
 function updateAnnotationOpacity() {
     var objDistance = camera.position.distanceTo(mesh.position);
@@ -258,16 +232,57 @@ function updateAnnotationOpacity() {
 }
 /* 修改注解屏幕位置函数体 实时更新，实际是三维坐标向屏幕坐标的映射*/
 function updateScreenPosition() {
-    var vector = new THREE.Vector3(250, 0, 250); // 控制annotation的位置
     var canvas = renderer.domElement;
 
+    var vector = new THREE.Vector3(250, 0, 250); // 控制annotation的位置
     vector.project(camera);
-
     vector.x = Math.round((0.5 + vector.x / 2) * (canvas.width / window.devicePixelRatio));
     vector.y = Math.round((0.5 - vector.y / 2) * (canvas.height / window.devicePixelRatio));
 
     annotation.style.top = vector.y + "px";
     annotation.style.left = vector.x + "px";
     annotation.style.opacity = spriteBehindObject ? 0.25 : 1;
+    //===================================================
+
+    var vector2 = new THREE.Vector3(-150, 10, 150); // 控制annotation2的位置
+    vector2.project(camera);
+    vector2.x = Math.round((0.5 + vector2.x / 2) * (canvas.width / window.devicePixelRatio));
+    vector2.y = Math.round((0.5 - vector2.y / 2) * (canvas.height / window.devicePixelRatio));
+
+    annotation2.style.top = vector2.y + "px";
+    annotation2.style.left = vector2.x + "px";
+    annotation2.style.opacity = spriteBehindObject ? 0.25 : 1;
 }
 
+/**
+ * 每个function对应一个热点
+ */ 
+function num1Btn(){
+
+    $('.annotation').find("*").toggle();
+
+    if(annotation.style.background !=''){
+
+        annotation.style.background = '';
+        
+    }else{
+
+        annotation.style.background = 'rgba(0, 0, 0, 0.8)';
+
+    }
+}
+
+function num2Btn(){
+
+    $('.annotation2').find("*").toggle();
+
+    if(annotation2.style.background !=''){
+        
+        annotation2.style.background = '';
+        
+    }else{
+
+        annotation2.style.background = 'rgba(0, 0, 0, 0.8)';
+
+    }
+}
