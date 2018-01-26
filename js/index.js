@@ -41,13 +41,17 @@ function init() {
     camera.position.set( 750, 500, 1200 );
 
     var PI2 = Math.PI * 2;
-    particleMaterial = new THREE.SpriteCanvasMaterial( {
+    particleMaterial = new THREE.SpriteMaterial( {
+        alphaTest: 0.5,
+        transparent: true,
+        depthTest: false,
+        depthWrite: false,
         color: 0x000000,
-        program: function ( context ) {
-            context.beginPath();
-            context.arc( 0, 0, 0.5, 0, PI2, true );
-            context.fill();
-        }
+        // program: function ( context ) {
+        //     context.beginPath();
+        //     context.arc( 0, 0, 0.5, 0, PI2, true );
+        //     context.fill();
+        // }
 
     } );
     // Scene
@@ -88,7 +92,6 @@ function init() {
     raycaster = new THREE.Raycaster(); // 射线投射器
     mouse = new THREE.Vector2(); // 二维鼠标向量
 
-
     // Renderer
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -108,9 +111,10 @@ function init() {
     objLoader.load('zxj.obj', function (object) {
         
         object.traverse( function (child){
-            if (child instanceof THREE.Mesh) {
+            if (child.type === "Mesh") {
+                child.geometry.computeBoundingBox();
+                child.geometry.verticesNeedUpdate = true;
                 child.material.side = THREE.DoubleSide;
-                child.material.shininess = 100;
             }
            
         });
@@ -118,13 +122,6 @@ function init() {
         object.position.y = 0; //载入模型的时候的位置
         object.position.x = -100;
         object.position.z = -500;
-
-        object.material = new THREE.MeshPhongMaterial({
-            color: 0x156289,
-            emissive: 0x072534,
-            side: THREE.DoubleSide,
-            shading: THREE.FlatShading
-        });
         
         object.scale.x = 0.001;
         object.scale.y = 0.001;
@@ -134,15 +131,12 @@ function init() {
         objects.push( object );//仿照ThreeJS写法
         addObject = object; 
 
-        
-        document.addEventListener( 'mousedown', onDocumentMouseDown, false );
-        document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+    
     });
-
+    document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+    document.addEventListener( 'touchstart', onDocumentTouchStart, false );
     // Controls
     controls = new THREE.OrbitControls(camera, renderer.domElement);
-
-  
     //旋转速度
     controls.rotateSpeed = 0.25;
     //是否允许变焦
@@ -159,6 +153,7 @@ function init() {
     //controls.dynamicDampingFactor = 0.12;
 
     controls.dampingFactor = 0.09;
+
     window.addEventListener("resize", onWindowResize, false);
 }
 /**
@@ -176,6 +171,9 @@ function onDocumentTouchStart(event) {
 /**
  * 鼠标点击生成热点
  */ 
+function ondblclick(event){
+    
+}
 function onDocumentMouseDown(event) {
 
     event.preventDefault();
@@ -185,11 +183,18 @@ function onDocumentMouseDown(event) {
 
     raycaster.setFromCamera(mouse, camera);//从相机发射一条射线，经过鼠标点击位置
 
-    var intersects = raycaster.intersectObjects(objects);
+    var intersects = raycaster.intersectObjects(objects[0].children);
+    // if (intersects.length > 0) {
+    //     console.log('gg');
 
+    //     //intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
+    // }
+    /**
+     *  向模型上标记点
+     */
     if (intersects.length > 0) {
 
-        intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
+        //intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
 
         var particle = new THREE.Sprite(particleMaterial);
         particle.position.copy(intersects[0].point);
@@ -259,7 +264,7 @@ function updateScreenPosition() {
  */ 
 function num1Btn(){
 
-    $('.annotation').find("*").toggle();
+    $('.annotation').find("*").toggle('slow');
 
     if(annotation.style.background !=''){
 
@@ -274,7 +279,7 @@ function num1Btn(){
 
 function num2Btn(){
 
-    $('.annotation2').find("*").toggle();
+    $('.annotation2').find("*").toggle("slow");
 
     if(annotation2.style.background !=''){
         
