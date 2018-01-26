@@ -135,6 +135,7 @@ function init() {
     });
     document.addEventListener( 'mousedown', onDocumentMouseDown, false );
     document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+    document.addEventListener( 'dblclick',ondblClick, false);
     // Controls
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     //旋转速度
@@ -165,19 +166,16 @@ function onDocumentTouchStart(event) {
 
     event.clientX = event.touches[0].clientX;
     event.clientY = event.touches[0].clientY;
+
     onDocumentMouseDown(event);
 
 }
 /**
  * 鼠标点击生成热点
  */ 
-function ondblclick(event){
-    
-}
-function onDocumentMouseDown(event) {
-
+function ondblClick(event){
     event.preventDefault();
-
+    console.log('双击');
     mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
     mouse.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
 
@@ -198,10 +196,17 @@ function onDocumentMouseDown(event) {
 
         var particle = new THREE.Sprite(particleMaterial);
         particle.position.copy(intersects[0].point);
-        particle.scale.x = particle.scale.y = 16;
+        particle.scale.x = particle.scale.y = 5;
         scene.add(particle);
 
     }
+    
+}
+function onDocumentMouseDown(event) {
+
+    event.preventDefault();
+
+
 }
 
 function onWindowResize() {
