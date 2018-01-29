@@ -15,7 +15,7 @@ var objLoader = void 0;
 var spriteBehindObject = void 0;
 // 例子，annotation写法
 var annotation = document.querySelector(".annotation"); //第一个annotation
-
+var hotpoints = [];
 init();
 animate();
 
@@ -164,42 +164,18 @@ function initControl(){
 function ondblClick(event){
     event.preventDefault();
     console.log('双击');
-    mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+    mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1; //获取鼠标点击的位置的坐标
     mouse.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
 
     raycaster.setFromCamera(mouse, camera);//从相机发射一条射线，经过鼠标点击位置
     var intersects = raycaster.intersectObjects(objects[0].children);
 
-    /**
-     *  向模型上标记点
-     */
-
-    // var div = document.createElement('div');
-    // div.className = 'annotation3';
-    // div.style.background = 'rgba(0, 0, 0, 0.8)';
-    // var sp = document.createElement('p');
-    // var s  = document.createElement('strong');
-    // s.innerHTML = 'annotation3';
-    // sp.appendChild(s);
-    // var p = document.createElement('p');
-    // p.innerHTML = 'annotation3inner';
-    // div.appendChild(sp);
-    // div.appendChild(s);
-    // document.body.appendChild(div);
-
-    div.onclick = function () {
-        $('.annotation3').find("*").toggle('slow');
-
-        if (annotation3.style.background != '') {
-
-            annotation3.style.background = '';
-
-        } else {
-
-            annotation3.style.background = 'rgba(0, 0, 0, 0.8)';
-        }
-    }
+    /* 如果射线与模型之间有交点，才执行如下操作 */
     if (intersects.length > 0) {
+        /**
+         *  向模型上标记点
+         */
+        initAnnotation();
         // 选中mesh
         //intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
 
@@ -207,38 +183,31 @@ function ondblClick(event){
         particle.position.copy(intersects[0].point);
         particle.scale.x = particle.scale.y = 5;
         scene.add(particle);
-
-    }
-    
+    }   
 }
- /**
-  * 鼠标单击事件
-  * @param {} event 
-  */
-function onDocumentMouseDown(event) {
+/**
+ * 创建热点相关节点，添加样式并add到document.body中
+ */
+function initAnnotation(){
+    var div = document.createElement('div'); 
+    var sp = document.createElement('p');
+    var strong = document.createElement('strong');
+    var p = document.createElement('p');
+    strong.innerHTML = '转向架';
+    p.innerHTML = 'caseone';
+    sp.appendChild(strong);
+    sp.append(p);
+    div.appendChild(sp);
+    div.className = 'annos';
+    div.style.background = 'rgba(0, 0, 0, 0.8)';
+    document.body.appendChild(div);
+    //操作伪dom中的内容
+    var v = window.getComputedStyle(div,'::before').getPropertyValue('content');
 
-    event.preventDefault();
+    // $('.red').attr('data-attr', 'green');
+    $('.annos').attr('data-attr', '2');
+    console.log(v);
 }
-
-function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-
-    renderer.setSize(window.innerWidth, window.innerHeight);
-}
-
-function animate() {
-    requestAnimationFrame(animate);
-    controls.update();
-    render();
-}
-
-function render() {
-    renderer.render(scene, camera);
-    updateAnnotationOpacity(); // 修改注解的透明度
-    updateScreenPosition(); // 修改注解的屏幕位置
-}
-
 /* 修改注解透明度函数体 */
 function updateAnnotationOpacity() {
     var objDistance = camera.position.distanceTo(mesh.position);
@@ -265,18 +234,6 @@ function updateScreenPosition() {
 
 }
 /**
- * 触摸屏
- */ 
-function onDocumentTouchStart(event) {
-    
-        event.preventDefault();
-    
-        event.clientX = event.touches[0].clientX;
-        event.clientY = event.touches[0].clientY;
-        onDocumentMouseDown(event);
-    
-    }
-/**
  * 每个function对应一个热点
  */ 
 function num1Btn(){
@@ -293,4 +250,42 @@ function num1Btn(){
 
     }
 }
+/**
+ * 鼠标单击事件
+ * @param {} event 
+ */
+function onDocumentMouseDown(event) {
 
+    event.preventDefault();
+}
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    render();
+}
+
+function render() {
+    renderer.render(scene, camera);
+    updateAnnotationOpacity(); // 修改注解的透明度
+    updateScreenPosition(); // 修改注解的屏幕位置
+}
+/**
+ * 触摸屏
+ */ 
+function onDocumentTouchStart(event) {
+    
+        event.preventDefault();
+    
+        event.clientX = event.touches[0].clientX;
+        event.clientY = event.touches[0].clientY;
+        onDocumentMouseDown(event);
+    
+    }

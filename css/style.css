@@ -34,7 +34,36 @@ canvas {
   text-align: center;
   background: rgba(0, 0, 0, 0.8);
 }
-
+.annos {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  margin-left: 15px;
+  margin-top: 15px;
+  padding: 1em;
+  width: 200px;
+  color: #fff;
+  border-radius: .5em;
+  font-size: 12px;
+  line-height: 1.2;
+  -webkit-transition: opacity .5s;
+  transition: opacity .5s;
+}
+.annos::before {
+  content: attr(data-attr); 
+  position: absolute;
+  top: -30px;
+  left: -30px;
+  width: 30px;
+  height: 30px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  font-size: 16px;
+  line-height: 30px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.8);
+}
 #number {
   position: absolute;
   z-index: -1;
