@@ -1,33 +1,21 @@
-
-
-// Number
-
 var canvas = document.getElementById("number");
-var ctx = canvas.getContext("2d");
 
-var container, stats;
+var container;
 var particleMaterial;
 var raycaster;
 var mouse;
 var objects =[];
 
 // three.js
-var camera = void 0;
+var camera, scene, renderer;
 var controls = void 0;
-var scene = void 0;
-var renderer = void 0;
 var sprite = void 0;
 var mesh = void 0;
 var objLoader = void 0;
 var spriteBehindObject = void 0;
-
+// 例子，annotation写法
 var annotation = document.querySelector(".annotation"); //第一个annotation
-var annotation2 = document.querySelector(".annotation2");//第二个annotation
 
-var addObject = new Object();
-//
-var texture = new THREE.Texture();
-texture.needsUpdate = true;
 init();
 animate();
 
@@ -46,17 +34,10 @@ function init() {
         transparent: true,
         depthTest: false,
         depthWrite: false,
-        color: 0x000000,
-        // program: function ( context ) {
-        //     context.beginPath();
-        //     context.arc( 0, 0, 0.5, 0, PI2, true );
-        //     context.fill();
-        // }
-
-    } );
+        color: 0x000000
+    });
     // Scene
     scene = new THREE.Scene();
-
     // Lights
     var lights = [];
 
@@ -64,6 +45,7 @@ function init() {
     lights[1] = new THREE.PointLight(0xffffff, 1, 0);
     lights[0].position.set(1000, 2000, 1000);
     lights[1].position.set(-1000, -2000, -1000);
+
     scene.add(lights[0]);
     scene.add(lights[1]);
 
@@ -79,7 +61,7 @@ function init() {
     }));
 
     // Sprite
-     
+    // 创建一个永远朝向屏幕方向的sprite
     var numberTexture = new THREE.CanvasTexture(document.querySelector("#number"));
 
     sprite = new THREE.Sprite();
@@ -100,16 +82,13 @@ function init() {
     renderer.setClearColor(0x000000, 0.5);
     container.appendChild( renderer.domElement );
     document.body.appendChild(renderer.domElement);
-    stats = new Stats();
-    container.appendChild( stats.dom );
-
 
     //  objLoader
 
     objLoader = new THREE.OBJLoader();
     objLoader.setPath('./obj/');
     objLoader.load('zxj.obj', function (object) {
-        
+
         object.traverse( function (child){
             if (child.type === "Mesh") {
                 child.geometry.computeBoundingBox();
@@ -119,8 +98,8 @@ function init() {
            
         });
         object.name = "zxj";  //设置模型的名称
-        object.position.y = 0; //载入模型的时候的位置
-        object.position.x = -100;
+        object.position.x = -100;//载入模型的时候的位置
+        object.position.y = 0; 
         object.position.z = -500;
         
         object.scale.x = 0.001;
@@ -129,14 +108,35 @@ function init() {
         //写入场景内
         scene.add(object);
         objects.push( object );//仿照ThreeJS写法
-        addObject = object; 
 
     
     });
+    // Controls
+    initControl();
+
     document.addEventListener( 'mousedown', onDocumentMouseDown, false );
     document.addEventListener( 'touchstart', onDocumentTouchStart, false );
     document.addEventListener( 'dblclick',ondblClick, false);
-    // Controls
+    window.addEventListener("resize", onWindowResize, false);
+}
+/**
+ * light光照初始化
+ */
+function initLight() {
+    // Lights
+    var lights = [];
+
+    lights[0] = new THREE.PointLight(0xffffff, 1, 0);
+    lights[1] = new THREE.PointLight(0xffffff, 1, 0);
+    lights[0].position.set(1000, 2000, 1000);
+    lights[1].position.set(-1000, -2000, -1000);
+    return lights;
+}
+/**
+ * 初始化控制器
+ * 控制器相关参数的调整
+ */
+function initControl(){
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     //旋转速度
     controls.rotateSpeed = 0.25;
@@ -148,31 +148,19 @@ function init() {
     controls.dampingFactor = 50;  
     //是否允许相机平移 默认是false
     controls.enablePan = true;
-    //惯性 true没有惯性
-    //controls.staticMoving = false;
     //动态阻尼系数 就是灵敏度
-    //controls.dynamicDampingFactor = 0.12;
-
     controls.dampingFactor = 0.09;
-
-    window.addEventListener("resize", onWindowResize, false);
 }
+
 /**
- * 触摸屏
- */ 
-function onDocumentTouchStart(event) {
-
-    event.preventDefault();
-
-    event.clientX = event.touches[0].clientX;
-    event.clientY = event.touches[0].clientY;
-
-    onDocumentMouseDown(event);
-
-}
-/**
- * 鼠标点击生成热点
- */ 
+ * 鼠标双击事件，添加热点
+ * 实现应该是双击某点后添加热点，并提示添加注释
+ * 步骤：1、双击某处；记录camera位置
+ *      2、 声明一个annotation
+ *      3、 在页面创建标签并绑定
+ *      4、 添加样式和事件
+ * @param {*} event 
+ */
 function ondblClick(event){
     event.preventDefault();
     console.log('双击');
@@ -180,18 +168,39 @@ function ondblClick(event){
     mouse.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
 
     raycaster.setFromCamera(mouse, camera);//从相机发射一条射线，经过鼠标点击位置
-
     var intersects = raycaster.intersectObjects(objects[0].children);
-    // if (intersects.length > 0) {
-    //     console.log('gg');
 
-    //     //intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
-    // }
     /**
      *  向模型上标记点
      */
-    if (intersects.length > 0) {
 
+    // var div = document.createElement('div');
+    // div.className = 'annotation3';
+    // div.style.background = 'rgba(0, 0, 0, 0.8)';
+    // var sp = document.createElement('p');
+    // var s  = document.createElement('strong');
+    // s.innerHTML = 'annotation3';
+    // sp.appendChild(s);
+    // var p = document.createElement('p');
+    // p.innerHTML = 'annotation3inner';
+    // div.appendChild(sp);
+    // div.appendChild(s);
+    // document.body.appendChild(div);
+
+    div.onclick = function () {
+        $('.annotation3').find("*").toggle('slow');
+
+        if (annotation3.style.background != '') {
+
+            annotation3.style.background = '';
+
+        } else {
+
+            annotation3.style.background = 'rgba(0, 0, 0, 0.8)';
+        }
+    }
+    if (intersects.length > 0) {
+        // 选中mesh
         //intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
 
         var particle = new THREE.Sprite(particleMaterial);
@@ -202,11 +211,13 @@ function ondblClick(event){
     }
     
 }
+ /**
+  * 鼠标单击事件
+  * @param {} event 
+  */
 function onDocumentMouseDown(event) {
 
     event.preventDefault();
-
-
 }
 
 function onWindowResize() {
@@ -219,7 +230,6 @@ function onWindowResize() {
 function animate() {
     requestAnimationFrame(animate);
     controls.update();
-    stats.update();
     render();
 }
 
@@ -252,18 +262,20 @@ function updateScreenPosition() {
     annotation.style.top = vector.y + "px";
     annotation.style.left = vector.x + "px";
     annotation.style.opacity = spriteBehindObject ? 0.25 : 1;
-    //===================================================
 
-    var vector2 = new THREE.Vector3(-150, 10, 150); // 控制annotation2的位置
-    vector2.project(camera);
-    vector2.x = Math.round((0.5 + vector2.x / 2) * (canvas.width / window.devicePixelRatio));
-    vector2.y = Math.round((0.5 - vector2.y / 2) * (canvas.height / window.devicePixelRatio));
-
-    annotation2.style.top = vector2.y + "px";
-    annotation2.style.left = vector2.x + "px";
-    annotation2.style.opacity = spriteBehindObject ? 0.25 : 1;
 }
-
+/**
+ * 触摸屏
+ */ 
+function onDocumentTouchStart(event) {
+    
+        event.preventDefault();
+    
+        event.clientX = event.touches[0].clientX;
+        event.clientY = event.touches[0].clientY;
+        onDocumentMouseDown(event);
+    
+    }
 /**
  * 每个function对应一个热点
  */ 
@@ -282,17 +294,3 @@ function num1Btn(){
     }
 }
 
-function num2Btn(){
-
-    $('.annotation2').find("*").toggle("slow");
-
-    if(annotation2.style.background !=''){
-        
-        annotation2.style.background = '';
-        
-    }else{
-
-        annotation2.style.background = 'rgba(0, 0, 0, 0.8)';
-
-    }
-}
