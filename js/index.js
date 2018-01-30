@@ -15,7 +15,7 @@ var objLoader = void 0;
 var spriteBehindObject = void 0;
 // 例子，annotation写法
 var annotation = document.querySelector(".annotation"); //第一个annotation
-var hotpoints = [];
+var annos = null;
 init();
 animate();
 
@@ -166,7 +166,6 @@ function ondblClick(event){
     console.log('双击');
     mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1; //获取鼠标点击的位置的坐标
     mouse.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
-
     raycaster.setFromCamera(mouse, camera);//从相机发射一条射线，经过鼠标点击位置
     var intersects = raycaster.intersectObjects(objects[0].children);
 
@@ -175,15 +174,26 @@ function ondblClick(event){
         /**
          *  向模型上标记点
          */
-        initAnnotation();
         // 选中mesh
         //intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
-
+        initAnnotation();
+        annos = document.querySelector('.annos');
         var particle = new THREE.Sprite(particleMaterial);
         particle.position.copy(intersects[0].point);
         particle.scale.x = particle.scale.y = 5;
         scene.add(particle);
     }   
+}
+function updateAnnosPosition(mouse){
+    var canvas = renderer.domElement;
+    var vector = new THREE.Vector3(this.mouse.x,this.mouse.y,this.mouse.z);// 控制annotation的位置
+    vector.project(camera);
+    vector.x = Math.round((0.5 + vector.x / 2) * (canvas.width / window.devicePixelRatio));
+    vector.y = Math.round((0.5 - vector.y / 2) * (canvas.height / window.devicePixelRatio));
+    
+    annos.style.top = vector.y + "px";
+    annos.style.left = vector.x + "px";
+    annos.style.opacity = spriteBehindObject ? 0.25 : 1;
 }
 /**
  * 创建热点相关节点，添加样式并add到document.body中
@@ -201,12 +211,9 @@ function initAnnotation(){
     div.className = 'annos';
     div.style.background = 'rgba(0, 0, 0, 0.8)';
     document.body.appendChild(div);
-    //操作伪dom中的内容
-    var v = window.getComputedStyle(div,'::before').getPropertyValue('content');
-
-    // $('.red').attr('data-attr', 'green');
-    $('.annos').attr('data-attr', '2');
-    console.log(v);
+    $('.annos').attr('data-attr', '2');//操作伪dom中的内容
+    // var v = window.getComputedStyle(div,'::before').getPropertyValue('content');
+    // console.log(v);
 }
 /* 修改注解透明度函数体 */
 function updateAnnotationOpacity() {
@@ -231,7 +238,14 @@ function updateScreenPosition() {
     annotation.style.top = vector.y + "px";
     annotation.style.left = vector.x + "px";
     annotation.style.opacity = spriteBehindObject ? 0.25 : 1;
-
+}
+function render() {
+    renderer.render(scene, camera);
+    updateAnnotationOpacity(); // 修改注解的透明度
+    updateScreenPosition(); // 修改注解的屏幕位置
+    if (annos != null){
+        updateAnnosPosition();
+    }
 }
 /**
  * 每个function对应一个热点
@@ -270,12 +284,6 @@ function animate() {
     requestAnimationFrame(animate);
     controls.update();
     render();
-}
-
-function render() {
-    renderer.render(scene, camera);
-    updateAnnotationOpacity(); // 修改注解的透明度
-    updateScreenPosition(); // 修改注解的屏幕位置
 }
 /**
  * 触摸屏
