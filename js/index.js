@@ -16,6 +16,9 @@ var spriteBehindObject = void 0;
 // 例子，annotation写法
 var annotation = document.querySelector(".annotation"); //第一个annotation
 var annos = null;
+var clientX;
+var clientY;
+var intersects = null;
 init();
 animate();
 
@@ -164,10 +167,13 @@ function initControl(){
 function ondblClick(event){
     event.preventDefault();
     console.log('双击');
+    clientX = event.clientX;
+    clientY = event.clientY;
     mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1; //获取鼠标点击的位置的坐标
     mouse.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+
     raycaster.setFromCamera(mouse, camera);//从相机发射一条射线，经过鼠标点击位置
-    var intersects = raycaster.intersectObjects(objects[0].children);
+    intersects = raycaster.intersectObjects(objects[0].children); //intersects是交点
 
     /* 如果射线与模型之间有交点，才执行如下操作 */
     if (intersects.length > 0) {
@@ -183,17 +189,6 @@ function ondblClick(event){
         particle.scale.x = particle.scale.y = 5;
         scene.add(particle);
     }   
-}
-function updateAnnosPosition(mouse){
-    var canvas = renderer.domElement;
-    var vector = new THREE.Vector3(this.mouse.x,this.mouse.y,this.mouse.z);// 控制annotation的位置
-    vector.project(camera);
-    vector.x = Math.round((0.5 + vector.x / 2) * (canvas.width / window.devicePixelRatio));
-    vector.y = Math.round((0.5 - vector.y / 2) * (canvas.height / window.devicePixelRatio));
-    
-    annos.style.top = vector.y + "px";
-    annos.style.left = vector.x + "px";
-    annos.style.opacity = spriteBehindObject ? 0.25 : 1;
 }
 /**
  * 创建热点相关节点，添加样式并add到document.body中
@@ -215,6 +210,38 @@ function initAnnotation(){
     // var v = window.getComputedStyle(div,'::before').getPropertyValue('content');
     // console.log(v);
 }
+/**
+ * 更新Annos屏幕中所处的位置
+ * Annos不是编号1的annotation
+ */
+function updateAnnosPosition(){
+    var canvas = renderer.domElement;
+    //var vector = new THREE.Vector3(clientX,clientY,-1);
+    var vector = new THREE.Vector3( intersects[0].point.x, intersects[0].point.y, intersects[0].point.z );
+    vector.project(camera); 
+    //这个位置的写法有问题
+    vector.x = Math.round((0.5 + vector.x / 2) * (canvas.width / window.devicePixelRatio)); // 控制annotation跟随物体一起旋转
+    vector.y = Math.round((0.5 - vector.y / 2) * (canvas.height / window.devicePixelRatio));
+    annos.style.left = vector.x + "px";
+    annos.style.top = vector.y + "px";
+
+    annos.style.opacity = spriteBehindObject ? 0.25 : 1;
+}
+
+/* 修改注解屏幕位置函数体 实时更新，实际是三维坐标向屏幕坐标的映射*/
+function updateScreenPosition() {
+    var canvas = renderer.domElement;
+
+    var vector = new THREE.Vector3(150, 0, 0); // 控制annotation的位置，vector3是world坐标系下的坐标，右手系。
+    vector.project(camera); //将向量投影到摄像机坐标系
+    vector.x = Math.round((0.5 + vector.x / 2) * (canvas.width / window.devicePixelRatio)); // 控制annotation跟随物体一起旋转
+    vector.y = Math.round((0.5 - vector.y / 2) * (canvas.height / window.devicePixelRatio));
+
+    annotation.style.top = vector.y + "px";
+    annotation.style.left = vector.x + "px";
+    annotation.style.opacity = spriteBehindObject ? 0.25 : 1;
+}
+
 /* 修改注解透明度函数体 */
 function updateAnnotationOpacity() {
     var objDistance = camera.position.distanceTo(mesh.position);
@@ -225,19 +252,6 @@ function updateAnnotationOpacity() {
     // Do you want a number that changes size according to its position?
     // Comment out the following line and the `::before` pseudo-element.
     sprite.material.opacity = 0;
-}
-/* 修改注解屏幕位置函数体 实时更新，实际是三维坐标向屏幕坐标的映射*/
-function updateScreenPosition() {
-    var canvas = renderer.domElement;
-
-    var vector = new THREE.Vector3(250, 0, 250); // 控制annotation的位置
-    vector.project(camera);
-    vector.x = Math.round((0.5 + vector.x / 2) * (canvas.width / window.devicePixelRatio));
-    vector.y = Math.round((0.5 - vector.y / 2) * (canvas.height / window.devicePixelRatio));
-
-    annotation.style.top = vector.y + "px";
-    annotation.style.left = vector.x + "px";
-    annotation.style.opacity = spriteBehindObject ? 0.25 : 1;
 }
 function render() {
     renderer.render(scene, camera);
