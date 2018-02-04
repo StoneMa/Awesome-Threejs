@@ -6,6 +6,11 @@ var raycaster;
 var mouse;
 var objects =[];
 
+// tween.js
+
+var target;
+var tween, tweenBack;
+
 // three.js
 var camera, scene, renderer;
 var controls = void 0;
@@ -30,7 +35,10 @@ function init() {
     // Camera
     camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 5000);
     camera.position.set( 750, 500, 1200 );
-
+    // tween.js
+    var tween = new TWEEN.Tween(camera.position);
+    tween.to({ x: 200 }, 1000);
+    tween.start();
     var PI2 = Math.PI * 2;
     particleMaterial = new THREE.SpriteMaterial( {
         alphaTest: 0.5,
@@ -297,6 +305,7 @@ function onWindowResize() {
 function animate() {
     requestAnimationFrame(animate);
     controls.update();
+    TWEEN.update();
     render();
 }
 /**
