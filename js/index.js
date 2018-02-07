@@ -6,11 +6,6 @@ var raycaster;
 var mouse;
 var objects =[];
 
-// tween.js
-
-var target;
-var tween, tweenBack;
-
 // three.js
 var camera, scene, renderer;
 var controls = void 0;
@@ -24,21 +19,32 @@ var annos = null;
 var clientX;
 var clientY;
 var intersects = null;
+var stats;
 init();
 animate();
 
 function init() {
-
+    //初始化统计对象
+    stats = initStats();
+            function initStats() {
+            var stats = new Stats();
+            //设置统计模式
+            stats.setMode(0); // 0: fps, 1: ms
+            //统计信息显示在左上角
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.left = '0px';
+            stats.domElement.style.top = '0px';
+            //将统计对象添加到对应的<div>元素中
+            document.getElementById("Stats-output").appendChild(stats.domElement);
+            return stats;
+        }
     container = document.createElement( 'div' );
     document.body.appendChild( container );
 
     // Camera
     camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 5000);
     camera.position.set( 750, 500, 1200 );
-    // tween.js
-    var tween = new TWEEN.Tween(camera.position);
-    tween.to({ x: 200 }, 1000);
-    tween.start();
+
     var PI2 = Math.PI * 2;
     particleMaterial = new THREE.SpriteMaterial( {
         alphaTest: 0.5,
@@ -262,6 +268,7 @@ function updateAnnotationOpacity() {
     sprite.material.opacity = 0;
 }
 function render() {
+    stats.update();
     renderer.render(scene, camera);
     updateAnnotationOpacity(); // 修改注解的透明度
     updateScreenPosition(); // 修改注解的屏幕位置
@@ -273,6 +280,7 @@ function render() {
  * 每个function对应一个热点
  */ 
 function num1Btn(){
+    var tween = new TWEEN.Tween(camera.position).to({ x: 678, y: 395, z: 389 }, 1000).start();
 
     $('.annotation').find("*").toggle('slow');
 
