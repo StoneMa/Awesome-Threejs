@@ -156,17 +156,17 @@ function initLight() {
 function initControl(){
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     //旋转速度
+	// rotation speed
     controls.rotateSpeed = 0.25;
     //是否允许变焦
     controls.enableZoom = true;
     //变焦速度
     controls.zoomSpeed = 1.2;
-    controls.enableDamping = true;
-    controls.dampingFactor = 50;  
-    //是否允许相机平移 默认是false
+	//是否允许相机平移 默认是false
     controls.enablePan = true;
+    controls.enableDamping = true;   // this enable damping
     //动态阻尼系数 就是灵敏度
-    controls.dampingFactor = 0.09;
+    controls.dampingFactor = 0.09; // this control the dampingFactor
 }
 
 /**
