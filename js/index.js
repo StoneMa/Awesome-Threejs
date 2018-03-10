@@ -200,7 +200,7 @@ function ondblClick(event){
         annos = document.querySelector('.annos');
         var particle = new THREE.Sprite(particleMaterial);
         particle.position.copy(intersects[0].point);
-        particle.scale.x = particle.scale.y = 5;
+        particle.scale.x = particle.scale.y = 0; // 控制鼠标双击的位置和模型的交点处粒子的大小
         scene.add(particle);
     }   
 }
