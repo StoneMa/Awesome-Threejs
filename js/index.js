@@ -4,7 +4,7 @@ var container;
 var particleMaterial;
 var raycaster;
 var mouse;
-var objects =[];
+var objects = [];
 
 // three.js
 var camera, scene, renderer;
@@ -26,27 +26,27 @@ animate();
 function init() {
     //初始化统计对象
     stats = initStats();
-            function initStats() {
-            var stats = new Stats();
-            //设置统计模式
-            stats.setMode(0); // 0: fps, 1: ms
-            //统计信息显示在左上角
-            stats.domElement.style.position = 'absolute';
-            stats.domElement.style.left = '0px';
-            stats.domElement.style.top = '0px';
-            //将统计对象添加到对应的<div>元素中
-            document.getElementById("Stats-output").appendChild(stats.domElement);
-            return stats;
-        }
-    container = document.createElement( 'div' );
-    document.body.appendChild( container );
+    function initStats() {
+        var stats = new Stats();
+        //设置统计模式
+        stats.setMode(0); // 0: fps, 1: ms
+        //统计信息显示在左上角
+        stats.domElement.style.position = 'absolute';
+        stats.domElement.style.left = '0px';
+        stats.domElement.style.top = '0px';
+        //将统计对象添加到对应的<div>元素中
+        document.getElementById("Stats-output").appendChild(stats.domElement);
+        return stats;
+    }
+    container = document.createElement('div');
+    document.body.appendChild(container);
 
     // Camera
     camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 1, 5000);
-    camera.position.set( 750, 500, 1200 );
+    camera.position.set(750, 500, 1200);
 
     var PI2 = Math.PI * 2;
-    particleMaterial = new THREE.SpriteMaterial( {
+    particleMaterial = new THREE.SpriteMaterial({
         alphaTest: 0.5,
         transparent: true,
         depthTest: false,
@@ -97,7 +97,7 @@ function init() {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0.5);
-    container.appendChild( renderer.domElement );
+    container.appendChild(renderer.domElement);
     document.body.appendChild(renderer.domElement);
 
     //  objLoader
@@ -106,34 +106,34 @@ function init() {
     objLoader.setPath('./obj/');
     objLoader.load('zxj.obj', function (object) {
 
-        object.traverse( function (child){
+        object.traverse(function (child) {
             if (child.type === "Mesh") {
                 child.geometry.computeBoundingBox();
                 child.geometry.verticesNeedUpdate = true;
                 child.material.side = THREE.DoubleSide;
             }
-           
+
         });
         object.name = "zxj";  //设置模型的名称
         object.position.x = -100;//载入模型的时候的位置
-        object.position.y = 0; 
+        object.position.y = 0;
         object.position.z = -500;
-        
+
         object.scale.x = 0.001;
         object.scale.y = 0.001;
         object.scale.z = 0.001;
         //写入场景内
         scene.add(object);
-        objects.push( object );//仿照ThreeJS写法
+        objects.push(object);//仿照ThreeJS写法
 
-    
+
     });
     // Controls
     initControl();
 
-    document.addEventListener( 'mousedown', onDocumentMouseDown, false );
-    document.addEventListener( 'touchstart', onDocumentTouchStart, false );
-    document.addEventListener( 'dblclick',ondblClick, false);
+    document.addEventListener('mousedown', onDocumentMouseDown, false);
+    document.addEventListener('touchstart', onDocumentTouchStart, false);
+    document.addEventListener('dblclick', ondblClick, false);
     window.addEventListener("resize", onWindowResize, false);
 }
 /**
@@ -153,7 +153,7 @@ function initLight() {
  * 初始化控制器
  * 控制器相关参数的调整
  */
-function initControl(){
+function initControl() {
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     //旋转速度
     controls.rotateSpeed = 0.25;
@@ -162,7 +162,7 @@ function initControl(){
     //变焦速度
     controls.zoomSpeed = 1.2;
     controls.enableDamping = true;
-    controls.dampingFactor = 50;  
+    controls.dampingFactor = 50;
     //是否允许相机平移 默认是false
     controls.enablePan = true;
     //动态阻尼系数 就是灵敏度
@@ -178,14 +178,20 @@ function initControl(){
  *      4、 添加样式和事件
  * @param {*} event 
  */
-function ondblClick(event){
+
+function ondblClick(event) {
     event.preventDefault();
-    console.log('双击');
+    console.log('获取屏幕坐标：');
     clientX = event.clientX;
     clientY = event.clientY;
+    console.log(clientX);
+    console.log(clientY);
+    // 获取到鼠标点击的位置的坐标
     mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1; //获取鼠标点击的位置的坐标
     mouse.y = - (event.clientY / renderer.domElement.clientHeight) * 2 + 1;
-
+    console.log('转换后的设备坐标（即屏幕标准化后的坐标从 -1 到 +1）：');
+    console.log(mouse.x);
+    console.log(mouse.y);
     raycaster.setFromCamera(mouse, camera);//从相机发射一条射线，经过鼠标点击位置
     intersects = raycaster.intersectObjects(objects[0].children); //intersects是交点
 
@@ -196,19 +202,22 @@ function ondblClick(event){
          */
         // 选中mesh
         //intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
-        initAnnotation();
+        initAnnotation(); // 这个方法控制是否在模型上添加热点，并把文字说明添加到备注中
+         //加载模态框
+        $('#myModal').modal();
         annos = document.querySelector('.annos');
         var particle = new THREE.Sprite(particleMaterial);
         particle.position.copy(intersects[0].point);
         particle.scale.x = particle.scale.y = 0; // 控制鼠标双击的位置和模型的交点处粒子的大小
         scene.add(particle);
-    }   
+    }
 }
+
 /**
  * 创建热点相关节点，添加样式并add到document.body中
  */
-function initAnnotation(){
-    var div = document.createElement('div'); 
+function initAnnotation() {
+    var div = document.createElement('div');
     var sp = document.createElement('p');
     var strong = document.createElement('strong');
     var p = document.createElement('p');
@@ -224,15 +233,16 @@ function initAnnotation(){
     // var v = window.getComputedStyle(div,'::before').getPropertyValue('content');
     // console.log(v);
 }
+
 /**
  * 更新Annos屏幕中所处的位置
  * Annos不是编号1的annotation
  */
-function updateAnnosPosition(){
+function updateAnnosPosition() {
     var canvas = renderer.domElement;
     //var vector = new THREE.Vector3(clientX,clientY,-1);
-    var vector = new THREE.Vector3( intersects[0].point.x, intersects[0].point.y, intersects[0].point.z );
-    vector.project(camera); 
+    var vector = new THREE.Vector3(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
+    vector.project(camera);
     //这个位置的写法有问题
     vector.x = Math.round((0.5 + vector.x / 2) * (canvas.width / window.devicePixelRatio)); // 控制annotation跟随物体一起旋转
     vector.y = Math.round((0.5 - vector.y / 2) * (canvas.height / window.devicePixelRatio));
@@ -272,23 +282,23 @@ function render() {
     renderer.render(scene, camera);
     updateAnnotationOpacity(); // 修改注解的透明度
     updateScreenPosition(); // 修改注解的屏幕位置
-    if (annos != null){
+    if (annos != null) {
         updateAnnosPosition();
     }
 }
 /**
  * 每个function对应一个热点
- */ 
-function num1Btn(){
+ */
+function num1Btn() {
     var tween = new TWEEN.Tween(camera.position).to({ x: 678, y: 395, z: 389 }, 1000).start();
 
     $('.annotation').find("*").toggle('slow');
 
-    if(annotation.style.background !=''){
+    if (annotation.style.background != '') {
 
         annotation.style.background = '';
-        
-    }else{
+
+    } else {
 
         annotation.style.background = 'rgba(0, 0, 0, 0.8)';
 
@@ -318,13 +328,13 @@ function animate() {
 }
 /**
  * 触摸屏
- */ 
+ */
 function onDocumentTouchStart(event) {
-    
-        event.preventDefault();
-    
-        event.clientX = event.touches[0].clientX;
-        event.clientY = event.touches[0].clientY;
-        onDocumentMouseDown(event);
-    
-    }
+
+    event.preventDefault();
+
+    event.clientX = event.touches[0].clientX;
+    event.clientY = event.touches[0].clientY;
+    onDocumentMouseDown(event);
+
+}
