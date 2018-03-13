@@ -7,6 +7,7 @@
 
   <link rel="stylesheet" href="css/normalize.min.css">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/bootstrap.min.css">
 
   <script src='js/jquery-3.3.1.js'></script>
   <script src='js/three.js'></script>
@@ -14,11 +15,12 @@
   <script src='js/OrbitControls.js'></script>
   <script src="js/CanvasRenderer.js"></script>
   <script src="js/stats.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
 </head>
 
 <body>
 	<div id="Stats-output"></div>
-  <canvas id="number" width="64" height="64"></canvas>
+  <canvas id="number" width="64" height="64" ></canvas>
   <div id="test" class="annotation" onclick="num1Btn()" style="background: rgba(0, 0, 0, 0.8);">
     <p>
       <strong>转向架</strong>
@@ -26,23 +28,32 @@
     <p>转向架的各种参数也直接决定了车辆的稳定性和车辆的乘坐舒适性.</p>
   </div>
   <!-- Modal -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="myModalLabel">Modal title</h4>
-      </div>
-      <div class="modal-body">
-        ...
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
+  <div class="modal fade" id="myModal">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="exampleModalLabel">New Annotation</h4>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="form-group">
+              <label for="recipient-name" class="control-label">Title:</label>
+              <input type="text" class="form-control" id="recipient-name">
+            </div>
+            <div class="form-group">
+              <label for="message-text" class="control-label">Description:</label>
+              <textarea class="form-control" id="message-text"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button onclick="initAnnotation()" type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 </body>
 <script src="tween.js.js/Tween.js"></script>
 <script src="js/index.js"></script>

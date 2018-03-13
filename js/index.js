@@ -130,8 +130,8 @@ function init() {
     });
     // Controls
     initControl();
-
-    document.addEventListener('mousedown', onDocumentMouseDown, false);
+    $('#test').click(onDocumentMouseDown);
+   //document.addEventListener('mousedown', onDocumentMouseDown, false); // 这里是个坑啊，一定要注意 鼠标单击事件如果绑定给全局document，其他需要鼠标单击的控件，全部失效
     document.addEventListener('touchstart', onDocumentTouchStart, false);
     document.addEventListener('dblclick', ondblClick, false);
     window.addEventListener("resize", onWindowResize, false);
@@ -202,14 +202,14 @@ function ondblClick(event) {
          */
         // 选中mesh
         //intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
-        initAnnotation(); // 这个方法控制是否在模型上添加热点，并把文字说明添加到备注中
          //加载模态框
-        $('#myModal').modal();
+        // $('#myModal').modal(); //调用模态框
+        initAnnotation(); // 这个方法控制是否在模型上添加热点，并把文字说明添加到备注中
         annos = document.querySelector('.annos');
         var particle = new THREE.Sprite(particleMaterial);
         particle.position.copy(intersects[0].point);
         particle.scale.x = particle.scale.y = 0; // 控制鼠标双击的位置和模型的交点处粒子的大小
-        scene.add(particle);
+        //scene.add(particle); //这里是控制这个粒子是否加入到场景中（就是鼠标点击模型上会出现一个小方块）
     }
 }
 
@@ -217,12 +217,14 @@ function ondblClick(event) {
  * 创建热点相关节点，添加样式并add到document.body中
  */
 function initAnnotation() {
+    console.log('ss');
     var div = document.createElement('div');
     var sp = document.createElement('p');
     var strong = document.createElement('strong');
-    var p = document.createElement('p');
-    strong.innerHTML = '转向架';
-    p.innerHTML = 'caseone';
+    var p =  document.createElement('p');
+    strong.type = 'text';
+    strong.innerHTML = $('#recipient-name').val();
+    p.innerHTML = $('#message-text').val();
     sp.appendChild(strong);
     sp.append(p);
     div.appendChild(sp);
