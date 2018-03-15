@@ -174,33 +174,33 @@ function ondblClick(event) {
             return;
         }
         else {
+            $('#myModal').modal(); //调用模态框
             /**
              *  向模型上标记点
              */
             // 选中mesh
             //intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
-            addAnnotation(); // 这个方法控制是否在模型上添加热点，并把文字说明添加到备注中
+
             // var particle = new THREE.Sprite(particleMaterial);
             // particle.position.copy(intersects[0].point);
             // particle.scale.x = particle.scale.y = 0; // 控制鼠标双击的位置和模型的交点处粒子的大小
             //scene.add(particle); //这里是控制这个粒子是否加入到场景中（就是鼠标点击模型上会出现一个小方块）
             //加载模态框
-            $('#myModal').modal(); //调用模态框
             rays.push(intersects[0]);
         }
     }
 }
 
-var div; // 创建anno content的div
-var sp;
-var strong;
-var p;
-var num; // annotation的数量
 /**
  * 创建热点相关节点，添加样式并add到document.body中
  */
 
 function addAnnotation() {
+    var div; // 创建anno content的div
+    var sp;
+    var strong;
+    var p;
+    var num; // annotation的数量
     console.log('ss');
     sp = document.createElement('p');
     strong = document.createElement('strong');
@@ -212,12 +212,7 @@ function addAnnotation() {
     document.body.appendChild(div);
     annos.push(div);
     num = annos.length;
-}
 
-/**
- * 修改Annotation中的内容
- */
-function modifyAnnoContent(){
     strong.innerHTML = $('#recipient-name').val();
     p.innerHTML = $('#message-text').val();
     sp.appendChild(strong);
@@ -227,13 +222,13 @@ function modifyAnnoContent(){
         type: 'POST',
         url: './addAnnos.do',
         data:{
-            'id'     : $('#recipient-id').val(),
+            'id'     : num,
             'title'  : $('#recipient-name').val(),
             'content': $('#message-text').val()
         },
         success: function(data){
             console.log(data);
-            $('.annos').attr('data-attr', $('#recipient-id').val());//操作伪dom中的内容，但是不能使用类选择器
+            $(div).attr('data-attr', num);//操作伪dom中的内容，但是不能使用类选择器
             // var v = window.getComputedStyle(div,'::before').getPropertyValue('content');
             // annos[i] 初始化结束后进行赋值
             $('#recipient-id').val("");
@@ -241,7 +236,6 @@ function modifyAnnoContent(){
             $('#message-text').val("");
         }
     });
-
 }
 
 /**
