@@ -148,7 +148,7 @@ function init() {
  *      4、 添加样式和事件
  * @param {*} event 
  */
-var rays = [];
+var rays = []; //记录多次双击之后的射线
 function ondblClick(event) {
     event.preventDefault();
     console.log('获取屏幕坐标：');
@@ -169,8 +169,8 @@ function ondblClick(event) {
 
     /* 如果射线与模型之间有交点，才执行如下操作 */
     if (intersects.length > 0) {
-        if (annos.length > 100){
-            alert("到大热点上限");
+        if (annos.length > 20){
+            alert("到达热点上限");
             return;
         }
         else {
@@ -180,13 +180,12 @@ function ondblClick(event) {
              */
             // 选中mesh
             //intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
-
             // var particle = new THREE.Sprite(particleMaterial);
             // particle.position.copy(intersects[0].point);
             // particle.scale.x = particle.scale.y = 0; // 控制鼠标双击的位置和模型的交点处粒子的大小
             //scene.add(particle); //这里是控制这个粒子是否加入到场景中（就是鼠标点击模型上会出现一个小方块）
             //加载模态框
-            rays.push(intersects[0]);
+            rays.push(intersects[0]); //将射线与模型的第一个交点push到rays数组中.
         }
     }
 }
@@ -229,6 +228,14 @@ function addAnnotation() {
         success: function(data){
             console.log(data);
             $(div).attr('data-attr', num);//操作伪dom中的内容，但是不能使用类选择器
+            $(div).on('click', function hideAnno() {
+                $(div).find("*").toggle('fast');
+                if (div.style.background != '') {
+                    div.style.background = '';
+                } else {
+                    div.style.background = 'rgba(0, 0, 0, 0.8)';
+                }
+            });
             // var v = window.getComputedStyle(div,'::before').getPropertyValue('content');
             // annos[i] 初始化结束后进行赋值
             $('#recipient-id').val("");
@@ -238,14 +245,7 @@ function addAnnotation() {
     });
 }
 
-/**
- * 点击×或者close 删除当前节点
- * 如何获取当前结点
- * 不能使用class选择器，模糊选择器会把所有同名class结点全部删除
- */
-function removeData(){
-    $('.annos').remove();
-}
+
 /**
  * 更新Annos屏幕中所处的位置
  * Annos不是编号1的annotation
@@ -269,7 +269,7 @@ function updateAnnosPosition() {
 }
 
 /* 修改注解屏幕位置函数体 实时更新，实际是三维坐标向屏幕坐标的映射，这个修改的是编号为1的annotation*/
-function updateScreenPosition() {
+/*function updateScreenPosition() {
     var canvas = renderer.domElement;
 
     var vector = new THREE.Vector3(150, 0, 0); // 控制annotation的位置，vector3是world坐标系下的坐标，右手系。
@@ -280,7 +280,7 @@ function updateScreenPosition() {
     annotation.style.top = vector.y + "px";
     annotation.style.left = vector.x + "px";
     annotation.style.opacity = spriteBehindObject ? 0.25 : 1;
-}
+}*/
 
 /* 修改注解透明度函数体 */
 function updateAnnotationOpacity() {
@@ -301,7 +301,7 @@ function render() {
     stats.update();
     renderer.render(scene, camera);
     updateAnnotationOpacity(); // 修改注解的透明度
-    updateScreenPosition(); // 修改注解的屏幕位置
+    //updateScreenPosition(); // 修改注解的屏幕位置
     if (annos != null){
         updateAnnosPosition();
     }
@@ -310,10 +310,10 @@ function render() {
 /**
  * 每个function对应一个热点
  */
-function num1Btn() {
+/*function num1Btn() {
     var tween = new TWEEN.Tween(camera.position).to({ x: 678, y: 395, z: 389 }, 1000).start();
 
-    $('.annotation').find("*").toggle('slow');
+    $('.annos').find("*").toggle('slow');
 
     if (annotation.style.background != '') {
 
@@ -324,7 +324,7 @@ function num1Btn() {
         annotation.style.background = 'rgba(0, 0, 0, 0.8)';
 
     }
-}
+}*/
 /**
  * 鼠标单击事件
  * @param {} event 
@@ -344,7 +344,7 @@ function onWindowResize() {
 function animate() {
     requestAnimationFrame(animate);
     controls.update();
-    TWEEN.update(); // 点击后触发更新视角
+    //TWEEN.update(); // 点击后触发更新视角
     render();
 }
 /**
