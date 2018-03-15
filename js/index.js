@@ -15,10 +15,11 @@ var objLoader = void 0;
 var spriteBehindObject = void 0;
 // 例子，annotation写法
 var annotation = document.querySelector(".annotation"); //第一个annotation
-var annos = null;
+var annos = new Array(); //热点定义成数组
 var clientX;
 var clientY;
-var intersects = null;
+var intersects;
+// var intersects = new Array();
 var stats;
 init();
 animate();
@@ -136,38 +137,7 @@ function init() {
     document.addEventListener('dblclick', ondblClick, false);
     window.addEventListener("resize", onWindowResize, false);
 }
-/**
- * light光照初始化
- */
-function initLight() {
-    // Lights
-    var lights = [];
 
-    lights[0] = new THREE.PointLight(0xffffff, 1, 0);
-    lights[1] = new THREE.PointLight(0xffffff, 1, 0);
-    lights[0].position.set(1000, 2000, 1000);
-    lights[1].position.set(-1000, -2000, -1000);
-    return lights;
-}
-/**
- * 初始化控制器
- * 控制器相关参数的调整
- */
-function initControl() {
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
-    //旋转速度
-    controls.rotateSpeed = 0.25;
-    //是否允许变焦
-    controls.enableZoom = true;
-    //变焦速度
-    controls.zoomSpeed = 1.2;
-    controls.enableDamping = true;
-    controls.dampingFactor = 50;
-    //是否允许相机平移 默认是false
-    controls.enablePan = true;
-    //动态阻尼系数 就是灵敏度
-    controls.dampingFactor = 0.09;
-}
 
 /**
  * 鼠标双击事件，添加热点
@@ -178,7 +148,7 @@ function initControl() {
  *      4、 添加样式和事件
  * @param {*} event 
  */
-
+var rays = [];
 function ondblClick(event) {
     event.preventDefault();
     console.log('获取屏幕坐标：');
@@ -192,69 +162,119 @@ function ondblClick(event) {
     console.log('转换后的设备坐标（即屏幕标准化后的坐标从 -1 到 +1）：');
     console.log(mouse.x);
     console.log(mouse.y);
-    raycaster.setFromCamera(mouse, camera);//从相机发射一条射线，经过鼠标点击位置
-    intersects = raycaster.intersectObjects(objects[0].children); //intersects是交点
+    raycaster.setFromCamera(mouse, camera);//从相机发射一条射线，经过鼠标点击位置 mouse为鼠标的二维设备坐标，camera射线起点处的相机
+    // intersects 是后者的返回对象数组，
+    intersects = raycaster.intersectObjects(objects[0].children, false); //intersects是交点数组，包含射线与mesh对象相交的所有交点
+    //intersects.push(raycaster.intersectObjects(objects[0].children)); //intersects是交点
 
     /* 如果射线与模型之间有交点，才执行如下操作 */
     if (intersects.length > 0) {
-        /**
-         *  向模型上标记点
-         */
-        // 选中mesh
-        //intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
-         //加载模态框
-        // $('#myModal').modal(); //调用模态框
-        initAnnotation(); // 这个方法控制是否在模型上添加热点，并把文字说明添加到备注中
-        annos = document.querySelector('.annos');
-        var particle = new THREE.Sprite(particleMaterial);
-        particle.position.copy(intersects[0].point);
-        particle.scale.x = particle.scale.y = 0; // 控制鼠标双击的位置和模型的交点处粒子的大小
-        //scene.add(particle); //这里是控制这个粒子是否加入到场景中（就是鼠标点击模型上会出现一个小方块）
+        if (annos.length > 100){
+            alert("到大热点上限");
+            return;
+        }
+        else {
+            /**
+             *  向模型上标记点
+             */
+            // 选中mesh
+            //intersects[0].object.material.color.setHex(Math.random() * 0xffffff);
+            addAnnotation(); // 这个方法控制是否在模型上添加热点，并把文字说明添加到备注中
+            // var particle = new THREE.Sprite(particleMaterial);
+            // particle.position.copy(intersects[0].point);
+            // particle.scale.x = particle.scale.y = 0; // 控制鼠标双击的位置和模型的交点处粒子的大小
+            //scene.add(particle); //这里是控制这个粒子是否加入到场景中（就是鼠标点击模型上会出现一个小方块）
+            //加载模态框
+            $('#myModal').modal(); //调用模态框
+            rays.push(intersects[0]);
+        }
     }
 }
 
+var div; // 创建anno content的div
+var sp;
+var strong;
+var p;
+var num; // annotation的数量
 /**
  * 创建热点相关节点，添加样式并add到document.body中
  */
-function initAnnotation() {
+
+function addAnnotation() {
     console.log('ss');
-    var div = document.createElement('div');
-    var sp = document.createElement('p');
-    var strong = document.createElement('strong');
-    var p =  document.createElement('p');
+    sp = document.createElement('p');
+    strong = document.createElement('strong');
+    p =  document.createElement('p');
     strong.type = 'text';
+    div = document.createElement('div');
+    div.className = 'annos';
+    div.style.background = 'rgba(0, 0, 0, 0.8)';
+    document.body.appendChild(div);
+    annos.push(div);
+    num = annos.length;
+}
+
+/**
+ * 修改Annotation中的内容
+ */
+function modifyAnnoContent(){
     strong.innerHTML = $('#recipient-name').val();
     p.innerHTML = $('#message-text').val();
     sp.appendChild(strong);
     sp.append(p);
     div.appendChild(sp);
-    div.className = 'annos';
-    div.style.background = 'rgba(0, 0, 0, 0.8)';
-    document.body.appendChild(div);
-    $('.annos').attr('data-attr', '2');//操作伪dom中的内容
-    // var v = window.getComputedStyle(div,'::before').getPropertyValue('content');
-    // console.log(v);
+    $.ajax({
+        type: 'POST',
+        url: './addAnnos.do',
+        data:{
+            'id'     : $('#recipient-id').val(),
+            'title'  : $('#recipient-name').val(),
+            'content': $('#message-text').val()
+        },
+        success: function(data){
+            console.log(data);
+            $('.annos').attr('data-attr', $('#recipient-id').val());//操作伪dom中的内容，但是不能使用类选择器
+            // var v = window.getComputedStyle(div,'::before').getPropertyValue('content');
+            // annos[i] 初始化结束后进行赋值
+            $('#recipient-id').val("");
+            $('#recipient-name').val("");
+            $('#message-text').val("");
+        }
+    });
+
 }
 
+/**
+ * 点击×或者close 删除当前节点
+ * 如何获取当前结点
+ * 不能使用class选择器，模糊选择器会把所有同名class结点全部删除
+ */
+function removeData(){
+    $('.annos').remove();
+}
 /**
  * 更新Annos屏幕中所处的位置
  * Annos不是编号1的annotation
  */
 function updateAnnosPosition() {
-    var canvas = renderer.domElement;
-    //var vector = new THREE.Vector3(clientX,clientY,-1);
-    var vector = new THREE.Vector3(intersects[0].point.x, intersects[0].point.y, intersects[0].point.z);
-    vector.project(camera);
-    //这个位置的写法有问题
-    vector.x = Math.round((0.5 + vector.x / 2) * (canvas.width / window.devicePixelRatio)); // 控制annotation跟随物体一起旋转
-    vector.y = Math.round((0.5 - vector.y / 2) * (canvas.height / window.devicePixelRatio));
-    annos.style.left = vector.x + "px";
-    annos.style.top = vector.y + "px";
+    for (var i = 0; i < annos.length; i++){
+        var canvas = renderer.domElement;
+        //var vector = new THREE.Vector3(clientX,clientY,-1);
+        // var vector = new THREE.Vector3(intersects[i].point.x, intersects[i].point.y, intersects[i].point.z);
+        var vector = new THREE.Vector3(rays[i].point.x, rays[i].point.y, rays[i].point.z);
+        vector.project(camera);
+        //这个位置的写法有问题
+        vector.x = Math.round((0.5 + vector.x / 2) * (canvas.width / window.devicePixelRatio)); // 控制annotation跟随物体一起旋转
+        vector.y = Math.round((0.5 - vector.y / 2) * (canvas.height / window.devicePixelRatio));
+        annos[i].style.left = vector.x + "px";
+        annos[i].style.top = vector.y + "px";
 
-    annos.style.opacity = spriteBehindObject ? 0.25 : 1;
+        annos[i].style.opacity = spriteBehindObject ? 0.25 : 1;
+    }
+
 }
 
-/* 修改注解屏幕位置函数体 实时更新，实际是三维坐标向屏幕坐标的映射*/
+/* 修改注解屏幕位置函数体 实时更新，实际是三维坐标向屏幕坐标的映射，这个修改的是编号为1的annotation*/
 function updateScreenPosition() {
     var canvas = renderer.domElement;
 
@@ -279,14 +299,19 @@ function updateAnnotationOpacity() {
     // Comment out the following line and the `::before` pseudo-element.
     sprite.material.opacity = 0;
 }
+
+/**
+ * 渲染器
+ */
 function render() {
     stats.update();
     renderer.render(scene, camera);
     updateAnnotationOpacity(); // 修改注解的透明度
     updateScreenPosition(); // 修改注解的屏幕位置
-    if (annos != null) {
+    if (annos != null){
         updateAnnosPosition();
     }
+
 }
 /**
  * 每个function对应一个热点
@@ -339,4 +364,37 @@ function onDocumentTouchStart(event) {
     event.clientY = event.touches[0].clientY;
     onDocumentMouseDown(event);
 
+}
+
+/**
+ * light光照初始化
+ */
+function initLight() {
+    // Lights
+    var lights = [];
+
+    lights[0] = new THREE.PointLight(0xffffff, 1, 0);
+    lights[1] = new THREE.PointLight(0xffffff, 1, 0);
+    lights[0].position.set(1000, 2000, 1000);
+    lights[1].position.set(-1000, -2000, -1000);
+    return lights;
+}
+/**
+ * 初始化控制器
+ * 控制器相关参数的调整
+ */
+function initControl() {
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    //旋转速度
+    controls.rotateSpeed = 0.25;
+    //是否允许变焦
+    controls.enableZoom = true;
+    //变焦速度
+    controls.zoomSpeed = 1.2;
+    controls.enableDamping = true;
+    controls.dampingFactor = 50;
+    //是否允许相机平移 默认是false
+    controls.enablePan = true;
+    //动态阻尼系数 就是灵敏度
+    controls.dampingFactor = 0.09;
 }

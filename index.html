@@ -17,26 +17,20 @@
   <script src="js/stats.min.js"></script>
   <script src="js/bootstrap.min.js"></script>
 </head>
-
-<body>
-	<div id="Stats-output"></div>
-  <canvas id="number" width="64" height="64" ></canvas>
-  <div id="test" class="annotation" onclick="num1Btn()" style="background: rgba(0, 0, 0, 0.8);">
-    <p>
-      <strong>转向架</strong>
-    </p>
-    <p>转向架的各种参数也直接决定了车辆的稳定性和车辆的乘坐舒适性.</p>
-  </div>
   <!-- Modal -->
   <div class="modal fade" id="myModal">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <button onclick="removeData()" type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
           <h4 class="modal-title" id="exampleModalLabel">New Annotation</h4>
         </div>
         <div class="modal-body">
           <form>
+            <div class="form-group">
+              <label for="recipient-id" class="control-label">ID:</label>
+              <input type="text" class="form-control" id="recipient-id">
+            </div>
             <div class="form-group">
               <label for="recipient-name" class="control-label">Title:</label>
               <input type="text" class="form-control" id="recipient-name">
@@ -48,11 +42,22 @@
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-          <button onclick="initAnnotation()" type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+          <button onclick="removeData()" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button onclick="modifyAnnoContent()" type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
         </div>
       </div>
     </div>
+  </div>
+
+
+<body>
+	<div id="Stats-output"></div>
+  <canvas id="number" width="64" height="64" ></canvas>
+  <div id="test" class="annotation" onclick="num1Btn()" style="background: rgba(0, 0, 0, 0.8);">
+    <p>
+      <strong>转向架</strong>
+    </p>
+    <p>转向架的各种参数也直接决定了车辆的稳定性和车辆的乘坐舒适性.</p>
   </div>
 </body>
 <script src="tween.js.js/Tween.js"></script>

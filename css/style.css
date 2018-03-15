@@ -3,7 +3,9 @@ canvas {
   height: 100px;
   display: block;
 }
-
+/**
+  这个annotation当做实例
+ */
 .annotation {
   position: absolute;
   top: 0;
@@ -21,7 +23,7 @@ canvas {
   transition: opacity .5s;
 }
 .annotation::before {
-  content: '1';
+  content: '0';
   position: absolute;
   top: -30px;
   left: -30px;
@@ -34,6 +36,9 @@ canvas {
   text-align: center;
   background: rgba(0, 0, 0, 0.8);
 }
+/**
+应用到所有的annotation
+ */
 .annos {
   position: absolute;
   top: 0;
@@ -64,6 +69,10 @@ canvas {
   text-align: center;
   background: rgba(0, 0, 0, 0.8);
 }
+
+/**
+画布的位置
+ */
 #number {
   position: absolute;
   z-index: -1;
