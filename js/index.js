@@ -28,9 +28,10 @@ function loadAnnos() {
     })
 }
 var existAnnos = [];
+
 function createExsitAnnos() {
     for (var j = 0; j < anno_data.length; j++){
-        var div; // 创建anno content的div
+        var e_div; // 创建anno content的div
         var sp;
         var strong;
         var p;
@@ -38,25 +39,33 @@ function createExsitAnnos() {
         strong = document.createElement('strong');
         p = document.createElement('p');
         strong.type = 'text';
-        div = document.createElement('div');
-        div.className = 'annos';
-        div.style.background = 'rgba(0, 0, 0, 0.8)';
-        document.body.appendChild(div);
-        existAnnos.push(div);
+        e_div = document.createElement('div');
+        e_div.className = 'annos';
+        e_div.style.background = 'rgba(0, 0, 0, 0.8)';
+        document.body.appendChild(e_div);
+        existAnnos.push(e_div);
         strong.innerHTML = anno_data[j].title;
         p.innerHTML = anno_data[j].content;
         sp.appendChild(strong);
         sp.append(p);
-        div.appendChild(sp);
-        $(div).attr('data-attr', anno_data[j].id);//操作伪dom中的内容，但是不能使用类选择器
-        $(div).on('click', function hideAnno() {
-            $(div).find("*").toggle('fast');
-            if (div.style.background != '') {
-                div.style.background = '';
-            } else {
-                div.style.background = 'rgba(0, 0, 0, 0.8)';
-            }
-        });
+        e_div.appendChild(sp);
+        $(e_div).attr('data-attr', anno_data[j].id);//操作伪dom中的内容，但是不能使用类选择器
+        /*
+        $(e_div).on('click', function hideExistAnno() {
+            $(e_div).find("*").toggle('fast');
+        })
+        */
+        (function(e){
+            $(e).on('click', function hideExistAnno() {
+                $(e).find("*").toggle('fast');
+                if (e.style.background != '') {
+                    e.style.background = '';
+                } else {
+                    e.style.background = 'rgba(0, 0, 0, 0.8)';
+                }
+            });
+        })(e_div)
+
     }
 }
 // 例子，annotation写法
