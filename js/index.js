@@ -13,20 +13,64 @@ var sprite = void 0;
 var mesh = void 0;
 var objLoader = void 0;
 var spriteBehindObject = void 0;
+
+var anno_data;
+function loadAnnos() {
+    $.ajax({
+        type: 'post',
+        url: './queryAnnos.do',
+        success: function (data) {
+            if (data != null){
+                anno_data = data;
+                createExsitAnnos();
+            }
+        }
+    })
+}
+var existAnnos = [];
+function createExsitAnnos() {
+    for (var j = 0; j < anno_data.length; j++){
+        var div; // 创建anno content的div
+        var sp;
+        var strong;
+        var p;
+        sp = document.createElement('p');
+        strong = document.createElement('strong');
+        p = document.createElement('p');
+        strong.type = 'text';
+        div = document.createElement('div');
+        div.className = 'annos';
+        div.style.background = 'rgba(0, 0, 0, 0.8)';
+        document.body.appendChild(div);
+        existAnnos.push(div);
+        strong.innerHTML = anno_data[j].title;
+        p.innerHTML = anno_data[j].content;
+        sp.appendChild(strong);
+        sp.append(p);
+        div.appendChild(sp);
+        $(div).attr('data-attr', anno_data[j].id);//操作伪dom中的内容，但是不能使用类选择器
+        $(div).on('click', function hideAnno() {
+            $(div).find("*").toggle('fast');
+            if (div.style.background != '') {
+                div.style.background = '';
+            } else {
+                div.style.background = 'rgba(0, 0, 0, 0.8)';
+            }
+        });
+    }
+}
 // 例子，annotation写法
-var annotation = document.querySelector(".annotation"); //第一个annotation
-var annos = new Array(); //热点定义成数组
-var clientX;
-var clientY;
-var intersects;
+// var annotation = document.querySelector(".annotation"); //第一个annotation
+
 // var intersects = new Array();
 var stats;
 init();
 animate();
-
+// 对于已经存在于数据库中的点，初始化的过程中要把点重新加入到模型当中
 function init() {
+
     //初始化统计对象
-    stats = initStats();
+/*    stats = initStats();
     function initStats() {
         var stats = new Stats();
         //设置统计模式
@@ -38,7 +82,7 @@ function init() {
         //将统计对象添加到对应的<div>元素中
         document.getElementById("Stats-output").appendChild(stats.domElement);
         return stats;
-    }
+    }*/
     container = document.createElement('div');
     document.body.appendChild(container);
 
@@ -127,10 +171,10 @@ function init() {
         scene.add(object);
         objects.push(object);//仿照ThreeJS写法
 
-
     });
     // Controls
     initControl();
+    loadAnnos(); // 初始化节点
     $('#test').click(onDocumentMouseDown);
    //document.addEventListener('mousedown', onDocumentMouseDown, false); // 这里是个坑啊，一定要注意 鼠标单击事件如果绑定给全局document，其他需要鼠标单击的控件，全部失效
     document.addEventListener('touchstart', onDocumentTouchStart, false);
@@ -149,7 +193,11 @@ function init() {
  * @param {*} event 
  */
 var rays = []; //记录多次双击之后的射线
+var annos = new Array(); //热点定义成数组
+var intersects;
 function ondblClick(event) {
+    var clientX;
+    var clientY;
     event.preventDefault();
     console.log('获取屏幕坐标：');
     clientX = event.clientX;
@@ -200,7 +248,6 @@ function addAnnotation() {
     var strong;
     var p;
     var num; // annotation的数量
-    console.log('ss');
     sp = document.createElement('p');
     strong = document.createElement('strong');
     p =  document.createElement('p');
@@ -217,17 +264,25 @@ function addAnnotation() {
     sp.appendChild(strong);
     sp.append(p);
     div.appendChild(sp);
+
+    var x_point = rays[rays.length - 1].point.x.toFixed(2);  // 输出结果保留两位
+    var y_point = rays[rays.length - 1].point.y.toFixed(2);  // 输出结果保留两位
+    var z_point = rays[rays.length - 1].point.z.toFixed(2);  // 输出结果保留两位
     $.ajax({
         type: 'POST',
         url: './addAnnos.do',
         data:{
-            'id'     : num,
+            // 'id'     : num, //回头这个地方的id可以都去掉，让数据库的id自增长
+            'id'     : $('#recipient-id').val(),
             'title'  : $('#recipient-name').val(),
-            'content': $('#message-text').val()
+            'content': $('#message-text').val(),
+            'x_point': x_point,
+            'y_point': y_point,
+            'z_point': z_point
         },
+        // 考虑一下，如何把当前div对应的交点的下x,y,z值一起传过去
         success: function(data){
-            console.log(data);
-            $(div).attr('data-attr', num);//操作伪dom中的内容，但是不能使用类选择器
+            $(div).attr('data-attr', $('#recipient-id').val());//操作伪dom中的内容，但是不能使用类选择器
             $(div).on('click', function hideAnno() {
                 $(div).find("*").toggle('fast');
                 if (div.style.background != '') {
@@ -244,7 +299,6 @@ function addAnnotation() {
         }
     });
 }
-
 
 /**
  * 更新Annos屏幕中所处的位置
@@ -264,6 +318,20 @@ function updateAnnosPosition() {
         annos[i].style.top = vector.y + "px";
 
         annos[i].style.opacity = spriteBehindObject ? 0.25 : 1;
+    }
+}
+function loadExistAnnosPosition() {
+    for (var k = 0 ; k < existAnnos.length; k++){
+        var canvas = renderer.domElement;
+
+        var vector = new THREE.Vector3(anno_data[k].x, anno_data[k].y, anno_data[k].z);
+        vector.project(camera);
+        vector.x = Math.round((0.5 + vector.x / 2) * (canvas.width / window.devicePixelRatio)); // 控制annotation跟随物体一起旋转
+        vector.y = Math.round((0.5 - vector.y / 2) * (canvas.height / window.devicePixelRatio));
+        existAnnos[k].style.left = vector.x + "px";
+        existAnnos[k].style.top = vector.y + "px";
+
+        existAnnos[k].style.opacity = spriteBehindObject ? 0.25 : 1;
     }
 
 }
@@ -298,12 +366,15 @@ function updateAnnotationOpacity() {
  * 渲染器
  */
 function render() {
-    stats.update();
+    //stats.update();
     renderer.render(scene, camera);
     updateAnnotationOpacity(); // 修改注解的透明度
     //updateScreenPosition(); // 修改注解的屏幕位置
     if (annos != null){
         updateAnnosPosition();
+    }
+    if (anno_data != null){
+        loadExistAnnosPosition();
     }
 
 }
