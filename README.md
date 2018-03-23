@@ -4,7 +4,7 @@
 ##### 鼠标双击添加热点
 ##### 热点位置待更新
 
-###使用方法:
+### 使用方法:
 * 环境：tomcat7.0+ , JDK1.8, Mysql5.1+, Chrome浏览器 
 * ``src``目录下为java后台，需要编译。
 * 在数据库创建一个名为annotation的数据库，运行annotation.sql脚本。
